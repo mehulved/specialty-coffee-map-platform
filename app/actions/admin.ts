@@ -25,6 +25,28 @@ export async function promoteFirstAdmin(formData: FormData) {
   return { success: true }
 }
 
+export async function getAdminUsers() {
+  await requireAdmin()
+  const result = await db.execute(sql`
+    SELECT
+      u."id",
+      u."name",
+      u."email",
+      COALESCE(u."role", 'member') AS "role",
+      u."createdAt",
+      COUNT(DISTINCT cs."id")::int AS "submissions",
+      COUNT(DISTINCT lf."id")::int AS "flags",
+      COUNT(DISTINCT cr."id")::int AS "ratings"
+    FROM "user" u
+    LEFT JOIN "cafe_submission" cs ON cs."submittedBy" = u."id"
+    LEFT JOIN "location_flag" lf ON lf."submittedBy" = u."id"
+    LEFT JOIN "cafe_rating" cr ON cr."userId" = u."id"
+    GROUP BY u."id", u."name", u."email", u."role", u."createdAt"
+    ORDER BY (COUNT(DISTINCT cs."id") + COUNT(DISTINCT lf."id") + COUNT(DISTINCT cr."id")) DESC, u."createdAt" DESC
+  `)
+  return result.rows.map((row) => ({ ...row, submissions: Number(row.submissions), flags: Number(row.flags), ratings: Number(row.ratings), points: Number(row.submissions) * 50 + Number(row.flags) * 15 + Number(row.ratings) * 10 }))
+}
+
 export async function getCurrentRole() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) return null
