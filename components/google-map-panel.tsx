@@ -80,7 +80,7 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
   useEffect(() => {
     if (!mapInstance.current) return
     mapInstance.current.panTo({ lat: selected.lat, lng: selected.lng })
-    mapInstance.current.setZoom(13)
+    mapInstance.current.setZoom(16)
   }, [selected])
 
   return (
