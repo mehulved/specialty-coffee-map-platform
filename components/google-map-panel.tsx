@@ -80,12 +80,13 @@ export function GoogleMapPanel({ cafes, selected, viewport, onSelect }: GoogleMa
       markers.current.forEach((marker) => { marker.map = null })
       markers.current = []
     }
-  }, [cafes, onSelect])
+  }, [cafes, onSelect, viewport])
 
   useEffect(() => {
     if (!mapInstance.current) return
-    mapInstance.current.panTo({ lat: selected.lat, lng: selected.lng })
-    window.setTimeout(() => mapInstance.current?.setZoom(16), 0)
+    const target = viewport?.center ?? { lat: selected.lat, lng: selected.lng }
+    mapInstance.current.panTo(target)
+    window.setTimeout(() => mapInstance.current?.setZoom(viewport?.zoom ?? 16), 0)
   }, [selected, viewport])
 
   return (
