@@ -35,16 +35,16 @@ export default function Page() {
   }
 
   return (
-    <main className="cafe-paper min-h-screen bg-[#f5efe4] text-[#382b22]">
-      <header className="flex h-20 items-center justify-between border-b border-[#deded7] bg-[#fbfaf7] px-6 lg:px-10">
+    <main className="cafe-paper min-h-screen bg-[#f4efe7] text-[#171513]">
+      <header className="flex h-20 items-center justify-between border-b border-[#171513] bg-[#171513] px-6 text-[#fffdf8] lg:px-10">
         <Link href="/" className="flex items-center gap-3" aria-label="kaapi home">
-          <span className="flex size-10 items-center justify-center rounded-full bg-[#1f3b2c] text-[#f5e9d0]"><Coffee data-icon="inline-start" /></span>
-          <span><span className="block font-serif text-xl font-semibold tracking-tight">kaapi</span><span className="block text-[10px] font-medium uppercase tracking-[0.24em] text-[#778077]">India coffee atlas</span></span>
+          <span className="flex size-10 items-center justify-center rounded-full bg-[#e2542f] text-[#fffdf8]"><Coffee data-icon="inline-start" /></span>
+          <span><span className="block font-serif text-xl font-semibold tracking-tight">kaapi</span><span className="block text-[10px] font-medium uppercase tracking-[0.24em] text-[#c7bfb5]">India coffee atlas</span></span>
         </Link>
         <nav className="flex items-center gap-3 text-sm text-[#687068]"><span className="hidden sm:inline">Explore</span>{isPending ? <span className="rounded-full border border-[#d7d9d2] px-4 py-2 text-[#8a9189]">Checking session…</span> : session?.user ? <><Link href="/add-cafe" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><Plus data-icon="inline-start" /> Add cafe</Link><Link href="/admin" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><Shield data-icon="inline-start" /> Admin</Link><button onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => window.location.reload() } })} className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><LogOut data-icon="inline-start" /> Sign out</button></> : <Link href="/sign-in" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><UserRound data-icon="inline-start" /> Sign in</Link>}</nav>
       </header>
-      <section className="border-b border-[#deded7] bg-[#fbfaf7] px-6 py-10 lg:px-10">
-        <div className="mx-auto max-w-[1440px]"><p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#b46d45]">A living guide to better coffee</p><h1 className="max-w-3xl font-serif text-4xl leading-[1.08] tracking-tight sm:text-6xl">Find your next <em className="text-[#b46d45]">good cup.</em></h1><p className="mt-4 max-w-xl text-base leading-7 text-[#687068]">A curated map of specialty cafes, roasters, and the people making Indian coffee worth travelling for.</p></div>
+      <section className="border-b border-[#171513] bg-[#171513] px-6 py-12 text-[#fffdf8] lg:px-10">
+        <div className="mx-auto max-w-[1440px]"><p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#f28c58]">A living guide to better coffee</p><h1 className="max-w-3xl font-serif text-4xl leading-[1.02] tracking-tight sm:text-7xl">Find your next <em className="text-[#f28c58]">good cup.</em></h1><p className="mt-4 max-w-xl text-base leading-7 text-[#c7bfb5]">A curated map of specialty cafes, roasters, and the people making Indian coffee worth travelling for.</p></div>
       </section>
       <section className="mx-auto grid max-w-[1440px] gap-5 px-4 py-5 lg:grid-cols-[360px_1fr] lg:px-6">
         <aside className="flex min-h-[600px] flex-col rounded-2xl border border-[#deded7] bg-[#fbfaf7] p-4 shadow-sm">
