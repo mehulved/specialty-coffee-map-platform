@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { cafeSubmissions } from '@/lib/db/schema'
+import { cafeSubmissions, locationFlags } from '@/lib/db/schema'
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -45,6 +45,41 @@ export async function removeApprovedSubmission(formData: FormData) {
   await db.update(cafeSubmissions).set({ status: 'rejected' }).where(and(eq(cafeSubmissions.id, id), eq(cafeSubmissions.status, 'approved')))
   revalidatePath('/admin')
   revalidatePath('/')
+}
+
+export async function submitLocationFlag(input: { locationId: string; reason: 'temporarily_closed' | 'permanently_closed' | 'reopened'; details: string }) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) redirect('/sign-in')
+  if (!input.locationId || !['temporarily_closed', 'permanently_closed', 'reopened'].includes(input.reason)) throw new Error('Invalid location flag')
+  await db.insert(locationFlags).values({ id: crypto.randomUUID(), locationId: input.locationId, reason: input.reason, details: input.details.trim().slice(0, 1000), submittedBy: session.user.id })
+  revalidatePath('/admin')
+  return { ok: true }
+}
+
+export async function getPendingFlags() {
+  await requireAdmin()
+  return db.select({ flag: locationFlags, location: cafeSubmissions }).from(locationFlags).innerJoin(cafeSubmissions, eq(locationFlags.locationId, cafeSubmissions.id)).where(eq(locationFlags.status, 'pending')).orderBy(desc(locationFlags.createdAt))
+}
+
+export async function moderateFlag(formData: FormData) {
+  await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  const status = String(formData.get('status') ?? '')
+  if (!id || !['approved', 'rejected'].includes(status)) throw new Error('Invalid flag moderation request')
+  const flag = await db.select().from(locationFlags).where(eq(locationFlags.id, id)).limit(1)
+  if (!flag[0]) throw new Error('Flag not found')
+  await db.update(locationFlags).set({ status }).where(eq(locationFlags.id, id))
+  if (status === 'approved') await db.update(cafeSubmissions).set({ availabilityStatus: flag[0].reason === 'reopened' ? 'open' : flag[0].reason }).where(eq(cafeSubmissions.id, flag[0].locationId))
+  revalidatePath('/admin'); revalidatePath('/')
+}
+
+export async function updateLocationAvailability(formData: FormData) {
+  await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  const availabilityStatus = String(formData.get('availabilityStatus') ?? '')
+  if (!id || !['open', 'temporarily_closed', 'permanently_closed'].includes(availabilityStatus)) throw new Error('Invalid availability status')
+  await db.update(cafeSubmissions).set({ availabilityStatus }).where(eq(cafeSubmissions.id, id))
+  revalidatePath('/admin'); revalidatePath('/')
 }
 
 export async function moderateSubmission(formData: FormData) {

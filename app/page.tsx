@@ -7,15 +7,16 @@ import Link from 'next/link'
 import { GoogleMapPanel } from '@/components/google-map-panel'
 import { authClient } from '@/lib/auth-client'
 import { getCafeFeedback, saveCafeFeedback } from '@/app/actions/ratings'
+import { submitLocationFlag } from '@/app/actions/submissions'
 
 const fetcher = (url: string) => fetch(url).then((response) => response.json())
 
 const cafes = [
-  { name: 'Subko Coffee', tags: ['Cafe'], area: 'Bandra West, Mumbai', aliases: ['Bombay', 'Thane', 'Navi Mumbai', 'Mumbai Metropolitan Region', 'MMR'], rating: 4.7, roast: 'Light roast', lat: 19.0596, lng: 72.8295, note: 'Single-origin espresso and thoughtful Indian coffees.' },
-  { name: 'Blue Tokai Coffee Roasters', tags: ['Cafe', 'Roastery'], area: 'Saket, New Delhi', aliases: ['Delhi', 'Dilli', 'NCR', 'Delhi NCR', 'Gurugram', 'Gurgaon', 'Noida', 'Ghaziabad', 'Faridabad'], rating: 4.5, roast: 'Seasonal', lat: 28.5295, lng: 77.2168, note: 'A reliable neighborhood stop with a rotating brew menu.' },
-  { name: 'Savorworks Roasters', tags: ['Roastery'], area: 'Shahpur Jat, New Delhi', aliases: ['Delhi', 'Dilli', 'NCR', 'Delhi NCR', 'Gurugram', 'Gurgaon', 'Noida', 'Ghaziabad', 'Faridabad'], rating: 4.8, roast: 'Experimental', lat: 28.5375, lng: 77.2067, note: 'Micro-lot coffees, careful pour overs, and a calm room.' },
-  { name: 'Third Wave Coffee', tags: ['Cafe'], area: 'Indiranagar, Bengaluru', aliases: ['Bangalore', 'Koramangala', 'HSR Layout', 'Whitefield', 'Jayanagar'], rating: 4.4, roast: 'All day', lat: 12.9784, lng: 77.6408, note: 'Bright, accessible specialty coffee for everyday drinking.' },
-  { name: 'Kapi Kottai', tags: ['Roastery'], area: 'Besant Nagar, Chennai', aliases: ['Madras'], rating: 4.8, roast: 'South Indian', lat: 13.0005, lng: 80.2668, note: 'Beautifully roasted Indian beans and slow coffee rituals.' },
+  { id: 'seed-subko-coffee', name: 'Subko Coffee', tags: ['Cafe'], area: 'Bandra West, Mumbai', aliases: ['Bombay', 'Thane', 'Navi Mumbai', 'Mumbai Metropolitan Region', 'MMR'], rating: 4.7, roast: 'Light roast', lat: 19.0596, lng: 72.8295, note: 'Single-origin espresso and thoughtful Indian coffees.' },
+  { id: 'seed-blue-tokai', name: 'Blue Tokai Coffee Roasters', tags: ['Cafe', 'Roastery'], area: 'Saket, New Delhi', aliases: ['Delhi', 'Dilli', 'NCR', 'Delhi NCR', 'Gurugram', 'Gurgaon', 'Noida', 'Ghaziabad', 'Faridabad'], rating: 4.5, roast: 'Seasonal', lat: 28.5295, lng: 77.2168, note: 'A reliable neighborhood stop with a rotating brew menu.' },
+  { id: 'seed-savorworks', name: 'Savorworks Roasters', tags: ['Roastery'], area: 'Shahpur Jat, New Delhi', aliases: ['Delhi', 'Dilli', 'NCR', 'Delhi NCR', 'Gurugram', 'Gurgaon', 'Noida', 'Ghaziabad', 'Faridabad'], rating: 4.8, roast: 'Experimental', lat: 28.5375, lng: 77.2067, note: 'Micro-lot coffees, careful pour overs, and a calm room.' },
+  { id: 'seed-third-wave', name: 'Third Wave Coffee', tags: ['Cafe'], area: 'Indiranagar, Bengaluru', aliases: ['Bangalore', 'Koramangala', 'HSR Layout', 'Whitefield', 'Jayanagar'], rating: 4.4, roast: 'All day', lat: 12.9784, lng: 77.6408, note: 'Bright, accessible specialty coffee for everyday drinking.' },
+  { id: 'seed-kapi-kottai', name: 'Kapi Kottai', tags: ['Roastery'], area: 'Besant Nagar, Chennai', aliases: ['Madras'], rating: 4.8, roast: 'South Indian', lat: 13.0005, lng: 80.2668, note: 'Beautifully roasted Indian beans and slow coffee rituals.' },
 ]
 
 export default function Page() {
@@ -31,6 +32,10 @@ export default function Page() {
   ]
   const [selected, setSelected] = useState(cafes[0])
   const [showFeedback, setShowFeedback] = useState(false)
+  const [showFlag, setShowFlag] = useState(false)
+  const [flagReason, setFlagReason] = useState<'temporarily_closed' | 'permanently_closed' | 'reopened'>('temporarily_closed')
+  const [flagDetails, setFlagDetails] = useState('')
+  const [flagSent, setFlagSent] = useState(false)
   const [feedbackRating, setFeedbackRating] = useState(0)
   const [feedbackNote, setFeedbackNote] = useState('')
   const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
@@ -60,6 +65,13 @@ export default function Page() {
     } catch {
       setShowFeedback(true)
     }
+  }
+
+  async function submitFlag() {
+    try {
+      await submitLocationFlag({ locationId: selected.id ?? selected.name, reason: flagReason, details: flagDetails })
+      setFlagSent(true); setFlagDetails('')
+    } catch { window.alert('Please sign in to report a location status.') }
   }
 
   async function saveFeedback() {
@@ -92,11 +104,12 @@ export default function Page() {
           <div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b46d45]">The shortlist</p><h2 className="mt-1 font-serif text-3xl leading-none">{filtered.length} places</h2></div><button className="rounded-full border border-[#deded7] p-2 text-[#687068] hover:bg-[#f0f1ec]" aria-label="Filter cafes"><SlidersHorizontal data-icon="inline-start" /></button></div>
           <label className="mt-4 flex items-center gap-2 rounded-full border border-[#deded7] bg-white px-4 py-3"><Search className="size-4 text-[#8a9189]" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by city, cafe, or tag" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9ba19a]" /></label>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1"><button onClick={() => setQuery('')} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${!query ? 'bg-[#1f3b2c] text-white' : 'border border-[#deded7] bg-white text-[#687068]'}`}>All places</button>{popularLists.map((list) => <button key={list.label} onClick={() => setQuery(list.search)} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${query.toLowerCase() === list.search.toLowerCase() ? 'border-[#e2542f] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#deded7] bg-white text-[#687068] hover:border-[#e6c7ae]'}`}>{list.label}</button>)}</div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} aria-current={selected.name === cafe.name ? 'true' : undefined} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-2 border-[#e2542f] bg-[#fff0e9] shadow-[0_0_0_3px_rgba(226,84,47,0.12)]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-center justify-between gap-3"><div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><h3 className="truncate text-sm font-semibold">{cafe.name}</h3>{cafe.tags.map((tag) => <span key={tag} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}</div><p className="mt-1 flex items-center gap-1 truncate text-[11px] text-[#7c847c]"><MapPin className="size-3" />{cafe.area}</p></div><span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#9a603e]"><Star className="size-3 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}</span></div></button>)}</div>
-          <button onClick={openFeedback} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2.5 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Add notes or rating</button>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} aria-current={selected.name === cafe.name ? 'true' : undefined} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-2 border-[#e2542f] bg-[#fff0e9] shadow-[0_0_0_3px_rgba(226,84,47,0.12)]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-center justify-between gap-3"><div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><h3 className="truncate text-sm font-semibold">{cafe.name}</h3>{cafe.tags.map((tag) => <span key={tag} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}</div><p className="mt-1 flex items-center gap-1 truncate text-[11px] text-[#7c847c]"><MapPin className="size-3" />{cafe.area}</p>{cafe.availabilityStatus && cafe.availabilityStatus !== 'open' && <span className={`mt-2 inline-block rounded-full px-2 py-1 text-[10px] font-semibold ${cafe.availabilityStatus === 'permanently_closed' ? 'bg-[#f7d8d3] text-[#9d3f34]' : 'bg-[#fff0c7] text-[#8a6211]'}`}>{cafe.availabilityStatus === 'permanently_closed' ? 'Permanently closed' : 'Temporarily closed'}</span>}</div><span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#9a603e]"><Star className="size-3 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}</span></div></button>)}</div>
+          <div className="mt-4 grid grid-cols-2 gap-2"><button onClick={openFeedback} className="flex items-center justify-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-3 py-2.5 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Rate</button><button onClick={() => { setFlagSent(false); setShowFlag(true) }} className="rounded-full border border-[#d7d9d2] bg-white px-3 py-2.5 text-sm font-semibold text-[#687068] hover:bg-[#f0f1ec]">Report status</button></div>
         </aside>
         <GoogleMapPanel cafes={allCafes} selected={selected} viewport={selectedViewport} onSelect={setSelected} />
       </section>
+      {showFlag && <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#20221f]/45 p-4"><section role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl border border-[#deded7] bg-[#fbfaf7] p-6 shadow-2xl"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#b46d45]">Community update</p><h2 className="mt-1 font-serif text-2xl">Report {selected.name}</h2>{flagSent ? <><p className="mt-3 text-sm text-[#687068]">Thanks. Your report is staged for admin approval.</p><button onClick={() => setShowFlag(false)} className="mt-5 rounded-xl bg-[#1f3b2c] px-4 py-2.5 text-sm font-semibold text-white">Done</button></> : <><label className="mt-5 block text-sm font-semibold">What changed?<select value={flagReason} onChange={(event) => setFlagReason(event.target.value as typeof flagReason)} className="mt-2 w-full rounded-xl border border-[#d7d9d2] bg-white p-3 text-sm"><option value="temporarily_closed">Temporarily closed</option><option value="permanently_closed">Permanently closed</option><option value="reopened">Open again</option></select></label><textarea value={flagDetails} onChange={(event) => setFlagDetails(event.target.value)} placeholder="Add context (optional)" rows={3} className="mt-3 w-full rounded-xl border border-[#d7d9d2] bg-white p-3 text-sm" /><div className="mt-4 flex justify-end gap-2"><button onClick={() => setShowFlag(false)} className="rounded-xl border border-[#d7d9d2] px-4 py-2.5 text-sm">Cancel</button><button onClick={submitFlag} className="rounded-xl bg-[#1f3b2c] px-4 py-2.5 text-sm font-semibold text-white">Submit report</button></div></>}</section></div>}
       {showFeedback && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#20221f]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowFeedback(false) }}>
           <section role="dialog" aria-modal="true" aria-labelledby="feedback-title" className="w-full max-w-md rounded-2xl border border-[#deded7] bg-[#fbfaf7] p-6 shadow-2xl">

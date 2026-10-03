@@ -24,10 +24,22 @@ export const cafeSubmissions = pgTable('cafe_submission', {
   details: text('details').notNull().default(''),
   submittedBy: text('submittedBy').notNull(),
   status: text('status').notNull().default('pending'),
+  availabilityStatus: text('availabilityStatus').notNull().default('open'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
 
 export type CafeRating = typeof cafeRatings.$inferSelect
 export type NewCafeRating = typeof cafeRatings.$inferInsert
+export const locationFlags = pgTable('location_flag', {
+  id: text('id').primaryKey(),
+  locationId: text('locationId').notNull(),
+  reason: text('reason').notNull(),
+  details: text('details').notNull().default(''),
+  submittedBy: text('submittedBy').notNull(),
+  status: text('status').notNull().default('pending'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+})
+
 export type CafeSubmission = typeof cafeSubmissions.$inferSelect
+export type LocationFlag = typeof locationFlags.$inferSelect
 export const cafeRatingsTable = cafeRatings
