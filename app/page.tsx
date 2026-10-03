@@ -22,7 +22,12 @@ const cafes = [
 export default function Page() {
   const { data: session } = authClient.useSession()
   const { data: approvedLocations = [] } = useSWR('/api/locations', fetcher)
-  const allCafes = useMemo(() => [...cafes, ...approvedLocations.filter((location: typeof cafes[number]) => !cafes.some((cafe) => cafe.name.toLowerCase() === location.name.toLowerCase()))], [approvedLocations])
+  const allCafes = useMemo(() => {
+    const managedByName = new Map(approvedLocations.map((location: typeof cafes[number]) => [location.name.toLowerCase(), location]))
+    const curated = cafes.map((cafe) => managedByName.get(cafe.name.toLowerCase()) ? { ...cafe, ...managedByName.get(cafe.name.toLowerCase()) } : cafe)
+    const curatedNames = new Set(cafes.map((cafe) => cafe.name.toLowerCase()))
+    return [...curated, ...approvedLocations.filter((location: typeof cafes[number]) => !curatedNames.has(location.name.toLowerCase()))]
+  }, [approvedLocations])
   const [query, setQuery] = useState('')
   const popularLists = [
     { label: 'Bengaluru', search: 'Bangalore', detail: 'Indiranagar · Koramangala · HSR' },
