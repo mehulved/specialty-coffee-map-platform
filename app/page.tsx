@@ -35,7 +35,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f6f2] text-[#20221f]">
+    <main className="cafe-paper min-h-screen bg-[#f5efe4] text-[#382b22]">
       <header className="flex h-20 items-center justify-between border-b border-[#deded7] bg-[#fbfaf7] px-6 lg:px-10">
         <Link href="/" className="flex items-center gap-3" aria-label="kaapi home">
           <span className="flex size-10 items-center justify-center rounded-full bg-[#1f3b2c] text-[#f5e9d0]"><Coffee data-icon="inline-start" /></span>

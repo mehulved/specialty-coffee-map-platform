@@ -47,24 +47,24 @@
 
 :root {
   color-scheme: light;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: oklch(0.965 0.018 82);
+  --foreground: oklch(0.245 0.035 58);
+  --card: oklch(0.985 0.012 82);
+  --card-foreground: oklch(0.245 0.035 58);
+  --popover: oklch(0.985 0.012 82);
+  --popover-foreground: oklch(0.245 0.035 58);
+  --primary: oklch(0.31 0.06 48);
+  --primary-foreground: oklch(0.97 0.02 82);
+  --secondary: oklch(0.91 0.035 82);
+  --secondary-foreground: oklch(0.31 0.06 48);
+  --muted: oklch(0.93 0.022 82);
+  --muted-foreground: oklch(0.51 0.035 61);
+  --accent: oklch(0.78 0.095 55);
+  --accent-foreground: oklch(0.28 0.055 48);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.86 0.032 78);
+  --input: oklch(0.86 0.032 78);
+  --ring: oklch(0.61 0.11 52);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -159,5 +159,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at 20% 10%, oklch(1 0 0 / 0.32), transparent 32rem), radial-gradient(circle at 90% 80%, oklch(0.82 0.05 55 / 0.11), transparent 30rem);
+  }
+  ::selection {
+    background: oklch(0.78 0.095 55 / 0.45);
+    color: oklch(0.22 0.04 48);
+  }
+}
+
+@layer utilities {
+  .cafe-paper {
+    background-image: linear-gradient(oklch(1 0 0 / 0.22) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.16) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .cafe-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(0.61 0.11 52 / 0.5), transparent);
   }
 }
