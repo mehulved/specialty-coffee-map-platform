@@ -6,13 +6,15 @@ import { eq, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
+const FIRST_ADMIN_EMAIL = 'mehul.n.ved@gmail.com'
+
 export async function promoteFirstAdmin(formData: FormData) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) redirect('/sign-in')
 
-  const email = String(formData.get('email') ?? '').trim().toLowerCase()
-  if (email !== session.user.email.toLowerCase()) {
-    return { error: 'For the first setup, enter the email address of the signed-in account.' }
+  const email = String(formData.get('email') ?? FIRST_ADMIN_EMAIL).trim().toLowerCase()
+  if (email !== FIRST_ADMIN_EMAIL || session.user.email.toLowerCase() !== FIRST_ADMIN_EMAIL) {
+    return { error: `Only ${FIRST_ADMIN_EMAIL} can become the first kaapi admin.` }
   }
 
   const result = await db.execute(sql`SELECT COUNT(*)::int AS count FROM "user" WHERE "role" = 'admin'`)
