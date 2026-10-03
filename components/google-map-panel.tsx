@@ -15,13 +15,16 @@ type Cafe = {
   note: string
 }
 
+type MapViewport = { center: { lat: number; lng: number }; zoom: number }
+
 type GoogleMapPanelProps = {
   cafes: Cafe[]
   selected: Cafe
+  viewport?: MapViewport
   onSelect: (cafe: Cafe) => void
 }
 
-export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProps) {
+export function GoogleMapPanel({ cafes, selected, viewport, onSelect }: GoogleMapPanelProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstance = useRef<any>(null)
   const markers = useRef<any[]>([])
@@ -44,8 +47,8 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
         if (cancelled || !mapRef.current) return
 
         const map = new Map(mapRef.current, {
-          center: { lat: 22.5, lng: 79.5 },
-          zoom: 5,
+          center: viewport?.center ?? { lat: 22.5, lng: 79.5 },
+          zoom: viewport?.zoom ?? 5,
           mapId: 'kaapi-atlas',
           streetViewControl: false,
           mapTypeControl: false,
@@ -63,8 +66,8 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
           marker.addListener('click', () => onSelect(cafe))
           return marker
         })
-        map.panTo({ lat: selected.lat, lng: selected.lng })
-        map.setZoom(16)
+        map.panTo(viewport?.center ?? { lat: selected.lat, lng: selected.lng })
+        map.setZoom(viewport?.zoom ?? 16)
       } catch (error) {
         console.error('[v0] Google Maps failed to load:', error)
         setMapError(true)
@@ -83,7 +86,7 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
     if (!mapInstance.current) return
     mapInstance.current.panTo({ lat: selected.lat, lng: selected.lng })
     window.setTimeout(() => mapInstance.current?.setZoom(16), 0)
-  }, [selected])
+  }, [selected, viewport])
 
   return (
     <div className="relative min-h-[520px] overflow-hidden rounded-2xl border border-[#deded7] bg-[#e6e5de] shadow-sm lg:min-h-[calc(100vh-9rem)]">

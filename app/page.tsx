@@ -39,6 +39,14 @@ export default function Page() {
     if (!search) return allCafes
     return allCafes.filter((cafe) => `${cafe.name} ${cafe.area} ${(cafe.aliases ?? []).join(' ')} ${cafe.tags.join(' ')}`.toLowerCase().includes(search))
   }, [allCafes, query])
+  const selectedViewport = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    if (normalized === 'mumbai' || normalized === 'bombay') return { center: { lat: 19.12, lng: 72.95 }, zoom: 10 }
+    if (normalized === 'ncr' || normalized === 'delhi' || normalized === 'dilli') return { center: { lat: 28.55, lng: 77.25 }, zoom: 10 }
+    if (normalized === 'bangalore' || normalized === 'bengaluru') return { center: { lat: 12.98, lng: 77.62 }, zoom: 11 }
+    if (normalized === 'goa') return { center: { lat: 15.4, lng: 73.95 }, zoom: 9 }
+    return undefined
+  }, [query])
   const currentFeedback = savedFeedback[selected.name]
   const addCafeHref = session?.user ? '/add-cafe' : '/sign-in'
 
@@ -87,7 +95,7 @@ export default function Page() {
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} aria-current={selected.name === cafe.name ? 'true' : undefined} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-2 border-[#e2542f] bg-[#fff0e9] shadow-[0_0_0_3px_rgba(226,84,47,0.12)]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-center justify-between gap-3"><div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><h3 className="truncate text-sm font-semibold">{cafe.name}</h3>{cafe.tags.map((tag) => <span key={tag} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}</div><p className="mt-1 flex items-center gap-1 truncate text-[11px] text-[#7c847c]"><MapPin className="size-3" />{cafe.area}</p></div><span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#9a603e]"><Star className="size-3 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}</span></div></button>)}</div>
           <button onClick={openFeedback} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2.5 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Add notes or rating</button>
         </aside>
-        <GoogleMapPanel cafes={allCafes} selected={selected} onSelect={setSelected} />
+        <GoogleMapPanel cafes={allCafes} selected={selected} viewport={selectedViewport} onSelect={setSelected} />
       </section>
       {showFeedback && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#20221f]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowFeedback(false) }}>
