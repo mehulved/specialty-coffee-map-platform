@@ -8,11 +8,11 @@ import { authClient } from '@/lib/auth-client'
 import { getCafeFeedback, saveCafeFeedback } from '@/app/actions/ratings'
 
 const cafes = [
-  { name: 'Subko Coffee', area: 'Bandra West, Mumbai', rating: 4.7, roast: 'Light roast', lat: 19.0596, lng: 72.8295, note: 'Single-origin espresso and thoughtful Indian coffees.' },
-  { name: 'Blue Tokai Coffee Roasters', area: 'Saket, New Delhi', rating: 4.5, roast: 'Seasonal', lat: 28.5295, lng: 77.2168, note: 'A reliable neighborhood stop with a rotating brew menu.' },
-  { name: 'Savorworks Roasters', area: 'Shahpur Jat, New Delhi', rating: 4.8, roast: 'Experimental', lat: 28.5375, lng: 77.2067, note: 'Micro-lot coffees, careful pour overs, and a calm room.' },
-  { name: 'Third Wave Coffee', area: 'Indiranagar, Bengaluru', rating: 4.4, roast: 'All day', lat: 12.9784, lng: 77.6408, note: 'Bright, accessible specialty coffee for everyday drinking.' },
-  { name: 'Kapi Kottai', area: 'Besant Nagar, Chennai', rating: 4.8, roast: 'South Indian', lat: 13.0005, lng: 80.2668, note: 'Beautifully roasted Indian beans and slow coffee rituals.' },
+  { name: 'Subko Coffee', area: 'Bandra West, Mumbai', aliases: ['Bombay'], rating: 4.7, roast: 'Light roast', lat: 19.0596, lng: 72.8295, note: 'Single-origin espresso and thoughtful Indian coffees.' },
+  { name: 'Blue Tokai Coffee Roasters', area: 'Saket, New Delhi', aliases: ['Delhi', 'Dilli'], rating: 4.5, roast: 'Seasonal', lat: 28.5295, lng: 77.2168, note: 'A reliable neighborhood stop with a rotating brew menu.' },
+  { name: 'Savorworks Roasters', area: 'Shahpur Jat, New Delhi', aliases: ['Delhi', 'Dilli'], rating: 4.8, roast: 'Experimental', lat: 28.5375, lng: 77.2067, note: 'Micro-lot coffees, careful pour overs, and a calm room.' },
+  { name: 'Third Wave Coffee', area: 'Indiranagar, Bengaluru', aliases: ['Bangalore'], rating: 4.4, roast: 'All day', lat: 12.9784, lng: 77.6408, note: 'Bright, accessible specialty coffee for everyday drinking.' },
+  { name: 'Kapi Kottai', area: 'Besant Nagar, Chennai', aliases: ['Madras'], rating: 4.8, roast: 'South Indian', lat: 13.0005, lng: 80.2668, note: 'Beautifully roasted Indian beans and slow coffee rituals.' },
 ]
 
 export default function Page() {
@@ -23,7 +23,11 @@ export default function Page() {
   const [feedbackRating, setFeedbackRating] = useState(0)
   const [feedbackNote, setFeedbackNote] = useState('')
   const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
-  const filtered = useMemo(() => cafes.filter((cafe) => `${cafe.name} ${cafe.area}`.toLowerCase().includes(query.toLowerCase())), [query])
+  const filtered = useMemo(() => {
+    const search = query.trim().toLowerCase()
+    if (!search) return cafes
+    return cafes.filter((cafe) => `${cafe.name} ${cafe.area} ${cafe.aliases.join(' ')}`.toLowerCase().includes(search))
+  }, [query])
   const currentFeedback = savedFeedback[selected.name]
   const addCafeHref = session?.user ? '/add-cafe' : '/sign-in'
 
