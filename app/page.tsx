@@ -5,6 +5,7 @@ import { Coffee, LogOut, MapPin, Search, Shield, SlidersHorizontal, Star, UserRo
 import Link from 'next/link'
 import { GoogleMapPanel } from '@/components/google-map-panel'
 import { authClient } from '@/lib/auth-client'
+import { getCafeFeedback, saveCafeFeedback } from '@/app/actions/ratings'
 
 const cafes = [
   { name: 'Subko Coffee', area: 'Bandra West, Mumbai', rating: 4.7, roast: 'Light roast', lat: 19.0596, lng: 72.8295, note: 'Single-origin espresso and thoughtful Indian coffees.' },
@@ -21,17 +22,34 @@ export default function Page() {
   const [showFeedback, setShowFeedback] = useState(false)
   const [feedbackRating, setFeedbackRating] = useState(0)
   const [feedbackNote, setFeedbackNote] = useState('')
-  const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string }>>({})
+  const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
   const filtered = useMemo(() => cafes.filter((cafe) => `${cafe.name} ${cafe.area}`.toLowerCase().includes(query.toLowerCase())), [query])
   const currentFeedback = savedFeedback[selected.name]
   const addCafeHref = session?.user ? '/add-cafe' : '/sign-in'
 
-  function saveFeedback() {
-    if (!feedbackRating && !feedbackNote.trim()) return
-    setSavedFeedback((previous) => ({ ...previous, [selected.name]: { rating: feedbackRating || currentFeedback?.rating || selected.rating, note: feedbackNote.trim() || currentFeedback?.note || '' } }))
-    setShowFeedback(false)
-    setFeedbackRating(0)
-    setFeedbackNote('')
+  async function openFeedback() {
+    try {
+      const result = await getCafeFeedback(selected.name)
+      if (result.mine) setSavedFeedback((previous) => ({ ...previous, [selected.name]: { rating: result.mine.rating, note: result.mine.notes, average: result.average, count: result.count } }))
+      setFeedbackRating(result.mine?.rating ?? 0)
+      setFeedbackNote(result.mine?.notes ?? '')
+      setShowFeedback(true)
+    } catch {
+      setShowFeedback(true)
+    }
+  }
+
+  async function saveFeedback() {
+    if (!feedbackRating) return
+    try {
+      const result = await saveCafeFeedback({ cafeName: selected.name, rating: feedbackRating, notes: feedbackNote })
+      setSavedFeedback((previous) => ({ ...previous, [selected.name]: { rating: feedbackRating, note: feedbackNote.trim(), average: result.average, count: result.count } }))
+      setShowFeedback(false)
+      setFeedbackRating(0)
+      setFeedbackNote('')
+    } catch {
+      window.alert('We could not save your rating. Please sign in and try again.')
+    }
   }
 
   return (
@@ -50,8 +68,8 @@ export default function Page() {
         <aside className="flex min-h-[600px] flex-col rounded-2xl border border-[#deded7] bg-[#fbfaf7] p-4 shadow-sm">
           <div className="mb-4 flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a9189]">Explore the atlas</p><h2 className="mt-1 font-serif text-2xl">{filtered.length} places to start</h2></div><button className="rounded-lg border border-[#deded7] p-2 text-[#687068] hover:bg-[#f0f1ec]" aria-label="Filter cafes"><SlidersHorizontal data-icon="inline-start" /></button></div>
           <label className="mb-4 flex items-center gap-2 rounded-xl border border-[#deded7] bg-white px-3 py-2.5"><Search className="text-[#8a9189]" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search city or cafe" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9ba19a]" /></label>
-          <div className="flex flex-col gap-2 overflow-auto">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-[#b46d45] bg-[#fff8f0]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold">{cafe.name}</h3><p className="mt-1 flex items-center gap-1 text-xs text-[#7c847c]"><MapPin className="size-3.5" />{cafe.area}</p></div><span className="flex items-center gap-1 text-sm font-semibold text-[#9a603e]"><Star className="size-3.5 fill-current" />{cafe.rating}</span></div><p className="mt-3 text-xs leading-5 text-[#6d756e]">{cafe.note}</p></button>)}</div>
-          <button onClick={() => { setFeedbackRating(currentFeedback?.rating ?? 0); setFeedbackNote(currentFeedback?.note ?? ''); setShowFeedback(true) }} className="mt-auto flex items-center justify-center gap-2 rounded-xl border border-[#d7d9d2] bg-white px-4 py-3 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Add notes or rating</button>
+          <div className="flex flex-col gap-2 overflow-auto">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-[#b46d45] bg-[#fff8f0]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold">{cafe.name}</h3><p className="mt-1 flex items-center gap-1 text-xs text-[#7c847c]"><MapPin className="size-3.5" />{cafe.area}</p></div><span className="flex items-center gap-1 text-sm font-semibold text-[#9a603e]"><Star className="size-3.5 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}{savedFeedback[cafe.name]?.count ? <span className="text-[10px] font-normal text-[#8a9189]">({savedFeedback[cafe.name]?.count})</span> : null}</span></div><p className="mt-3 text-xs leading-5 text-[#6d756e]">{cafe.note}</p></button>)}</div>
+          <button onClick={openFeedback} className="mt-auto flex items-center justify-center gap-2 rounded-xl border border-[#d7d9d2] bg-white px-4 py-3 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Add notes or rating</button>
         </aside>
         <GoogleMapPanel cafes={cafes} selected={selected} onSelect={setSelected} />
       </section>
@@ -61,7 +79,7 @@ export default function Page() {
             <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a9189]">Your field notes</p><h2 id="feedback-title" className="mt-1 font-serif text-2xl">{selected.name}</h2><p className="mt-1 text-sm text-[#687068]">{selected.area}</p></div><button onClick={() => setShowFeedback(false)} aria-label="Close feedback" className="rounded-lg p-2 text-[#687068] hover:bg-[#f0f1ec]"><X /></button></div>
             <div className="mt-6"><p className="text-sm font-semibold text-[#314337]">Your rating</p><div className="mt-2 flex gap-2" aria-label="Choose a rating from one to five stars">{[1, 2, 3, 4, 5].map((rating) => <button key={rating} type="button" onClick={() => setFeedbackRating(rating)} aria-label={`${rating} stars`} className="rounded-md p-1"><Star className={`size-7 ${rating <= feedbackRating ? 'fill-[#b46d45] text-[#b46d45]' : 'text-[#c4c8c0]'}`} /></button>)}</div></div>
             <label className="mt-5 block text-sm font-semibold text-[#314337]">Notes<textarea value={feedbackNote} onChange={(event) => setFeedbackNote(event.target.value)} placeholder="What should another coffee person know?" rows={4} className="mt-2 w-full resize-none rounded-xl border border-[#d7d9d2] bg-white p-3 text-sm outline-none focus:border-[#b46d45]" /></label>
-            <div className="mt-5 flex justify-end gap-2"><button onClick={() => setShowFeedback(false)} className="rounded-xl border border-[#d7d9d2] px-4 py-2.5 text-sm font-semibold text-[#687068]">Cancel</button><button onClick={saveFeedback} disabled={!feedbackRating && !feedbackNote.trim()} className="rounded-xl bg-[#1f3b2c] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Save notes</button></div>
+            <div className="mt-5 flex justify-end gap-2"><button onClick={() => setShowFeedback(false)} className="rounded-xl border border-[#d7d9d2] px-4 py-2.5 text-sm font-semibold text-[#687068]">Cancel</button><button onClick={saveFeedback} disabled={!feedbackRating} className="rounded-xl bg-[#1f3b2c] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Save rating</button></div>
           </section>
         </div>
       )}
