@@ -22,8 +22,8 @@ type GoogleMapPanelProps = {
 
 export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstance = useRef<google.maps.Map | null>(null)
-  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([])
+  const mapInstance = useRef<any>(null)
+  const markers = useRef<any[]>([])
   const [mapError, setMapError] = useState(false)
 
   useEffect(() => {
@@ -37,9 +37,9 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
       }
 
       try {
-        setOptions({ apiKey, version: 'weekly' })
-        const { Map } = await importLibrary('maps') as google.maps.MapsLibrary
-        const { AdvancedMarkerElement } = await importLibrary('marker') as google.maps.MarkerLibrary
+        setOptions({ key: apiKey, v: 'weekly' })
+        const { Map } = await importLibrary('maps') as any
+        const { AdvancedMarkerElement } = await importLibrary('marker') as any
         if (cancelled || !mapRef.current) return
 
         const map = new Map(mapRef.current, {
