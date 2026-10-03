@@ -48,6 +48,10 @@
 :root {
   color-scheme: light;
   --background: oklch(0.965 0.018 82);
+  --atlas-ink: oklch(0.245 0.035 58);
+  --atlas-paper: oklch(0.985 0.012 82);
+  --atlas-coral: oklch(0.67 0.18 38);
+  --atlas-muted: oklch(0.51 0.035 61);
   --foreground: oklch(0.245 0.035 58);
   --card: oklch(0.985 0.012 82);
   --card-foreground: oklch(0.245 0.035 58);
@@ -80,6 +84,9 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
+
+.atlas-shortlist::-webkit-scrollbar { width: 6px; height: 6px; }
+.atlas-shortlist::-webkit-scrollbar-thumb { background: oklch(0.78 0.04 78); border-radius: 999px; }
 
 .dark {
   color-scheme: dark;
