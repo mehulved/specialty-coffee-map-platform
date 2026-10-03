@@ -8,6 +8,7 @@ type Cafe = {
   name: string
   area: string
   rating: number
+  tags: string[]
   roast: string
   lat: number
   lng: number
@@ -98,7 +99,7 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a9189]">Selected place</p>
         <h3 className="mt-1 font-serif text-xl">{selected.name}</h3>
         <p className="mt-1 text-xs text-[#687068]">{selected.area}</p>
-        <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#9a603e]"><Coffee className="size-3.5" /> {selected.rating} community rating <span className="text-[#b9beb7]">·</span> {selected.roast}</div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#9a603e]">{selected.tags.map((tag) => <span key={tag} className={`rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.12em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}<span className="flex items-center gap-1"><Coffee className="size-3.5" /> {selected.rating} community rating</span><span className="text-[#b9beb7]">·</span> {selected.roast}</div>
       </div>
     </div>
   )
