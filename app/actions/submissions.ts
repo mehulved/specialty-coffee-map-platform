@@ -6,6 +6,7 @@ import { cafeSubmissions } from '@/lib/db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 async function requireAdmin() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -30,4 +31,15 @@ export async function createCafeSubmission(input: { name: string; address: strin
 export async function getPendingSubmissions() {
   await requireAdmin()
   return db.select().from(cafeSubmissions).where(eq(cafeSubmissions.status, 'pending')).orderBy(desc(cafeSubmissions.createdAt))
+}
+
+export async function moderateSubmission(formData: FormData) {
+  const session = await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  const status = String(formData.get('status') ?? '')
+  if (!id || !['approved', 'rejected'].includes(status)) throw new Error('Invalid moderation request')
+  await db.update(cafeSubmissions).set({ status }).where(eq(cafeSubmissions.id, id))
+  revalidatePath('/admin')
+  revalidatePath('/')
+  return { ok: true, moderator: session.user.id }
 }
