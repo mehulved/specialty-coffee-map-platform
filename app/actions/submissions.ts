@@ -3,7 +3,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { cafeSubmissions } from '@/lib/db/schema'
-import { desc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -31,6 +31,20 @@ export async function createCafeSubmission(input: { name: string; address: strin
 export async function getPendingSubmissions() {
   await requireAdmin()
   return db.select().from(cafeSubmissions).where(eq(cafeSubmissions.status, 'pending')).orderBy(desc(cafeSubmissions.createdAt))
+}
+
+export async function getApprovedSubmissions() {
+  await requireAdmin()
+  return db.select().from(cafeSubmissions).where(eq(cafeSubmissions.status, 'approved')).orderBy(asc(cafeSubmissions.name))
+}
+
+export async function removeApprovedSubmission(formData: FormData) {
+  await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  if (!id) throw new Error('Invalid location')
+  await db.update(cafeSubmissions).set({ status: 'rejected' }).where(and(eq(cafeSubmissions.id, id), eq(cafeSubmissions.status, 'approved')))
+  revalidatePath('/admin')
+  revalidatePath('/')
 }
 
 export async function moderateSubmission(formData: FormData) {
