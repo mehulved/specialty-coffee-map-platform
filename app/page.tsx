@@ -1,11 +1,14 @@
 'use client'
 
+import useSWR from 'swr'
 import { useMemo, useState } from 'react'
 import { Coffee, LogOut, MapPin, Search, Shield, SlidersHorizontal, Star, UserRound, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { GoogleMapPanel } from '@/components/google-map-panel'
 import { authClient } from '@/lib/auth-client'
 import { getCafeFeedback, saveCafeFeedback } from '@/app/actions/ratings'
+
+const fetcher = (url: string) => fetch(url).then((response) => response.json())
 
 const cafes = [
   { name: 'Subko Coffee', tags: ['Cafe'], area: 'Bandra West, Mumbai', aliases: ['Bombay', 'Thane', 'Navi Mumbai', 'Mumbai Metropolitan Region', 'MMR'], rating: 4.7, roast: 'Light roast', lat: 19.0596, lng: 72.8295, note: 'Single-origin espresso and thoughtful Indian coffees.' },
@@ -17,6 +20,8 @@ const cafes = [
 
 export default function Page() {
   const { data: session, isPending } = authClient.useSession()
+  const { data: approvedLocations = [] } = useSWR('/api/locations', fetcher)
+  const allCafes = useMemo(() => [...cafes, ...approvedLocations.filter((location: typeof cafes[number]) => !cafes.some((cafe) => cafe.name.toLowerCase() === location.name.toLowerCase()))], [approvedLocations])
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(cafes[0])
   const [showFeedback, setShowFeedback] = useState(false)
@@ -25,9 +30,9 @@ export default function Page() {
   const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase()
-    if (!search) return cafes
-    return cafes.filter((cafe) => `${cafe.name} ${cafe.area} ${cafe.aliases.join(' ')} ${cafe.tags.join(' ')}`.toLowerCase().includes(search))
-  }, [query])
+    if (!search) return allCafes
+    return allCafes.filter((cafe) => `${cafe.name} ${cafe.area} ${(cafe.aliases ?? []).join(' ')} ${cafe.tags.join(' ')}`.toLowerCase().includes(search))
+  }, [allCafes, query])
   const currentFeedback = savedFeedback[selected.name]
   const addCafeHref = session?.user ? '/add-cafe' : '/sign-in'
 
@@ -75,7 +80,7 @@ export default function Page() {
           <div className="flex flex-col gap-2 overflow-auto">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-[#b46d45] bg-[#fff8f0]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">{cafe.name}</h3>{cafe.tags.map((tag) => <span key={tag} className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}</div><p className="mt-1 flex items-center gap-1 text-xs text-[#7c847c]"><MapPin className="size-3.5" />{cafe.area}</p></div><span className="flex items-center gap-1 text-sm font-semibold text-[#9a603e]"><Star className="size-3.5 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}{savedFeedback[cafe.name]?.count ? <span className="text-[10px] font-normal text-[#8a9189]">({savedFeedback[cafe.name]?.count})</span> : null}</span></div><p className="mt-3 text-xs leading-5 text-[#6d756e]">{cafe.note}</p></button>)}</div>
           <button onClick={openFeedback} className="mt-auto flex items-center justify-center gap-2 rounded-xl border border-[#d7d9d2] bg-white px-4 py-3 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Add notes or rating</button>
         </aside>
-        <GoogleMapPanel cafes={cafes} selected={selected} onSelect={setSelected} />
+        <GoogleMapPanel cafes={allCafes} selected={selected} onSelect={setSelected} />
       </section>
       {showFeedback && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#20221f]/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowFeedback(false) }}>
