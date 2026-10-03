@@ -177,4 +177,80 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, oklch(0.61 0.11 52 / 0.5), transparent);
   }
+
+  /* A tactile neighbourhood cafe palette: espresso, cream, and terracotta. */
+  .cafe-paper {
+    background-color: #ead8bd !important;
+    background-image: radial-gradient(circle at 12% 8%, rgba(255, 247, 228, 0.72), transparent 25rem), radial-gradient(circle at 88% 72%, rgba(151, 73, 44, 0.13), transparent 32rem), repeating-linear-gradient(0deg, rgba(91, 52, 30, 0.035) 0 1px, transparent 1px 5px) !important;
+  }
+
+  .cafe-paper > header {
+    height: 88px !important;
+    border-bottom-color: #6b3f2a !important;
+    background: #3f271d !important;
+    color: #f7ead3 !important;
+  }
+
+  .cafe-paper > header a:first-child > span:first-child {
+    background: #c46d45 !important;
+    color: #fff1d6 !important;
+    box-shadow: 0 4px 0 #2a1913;
+  }
+
+  .cafe-paper > header a:first-child span:last-child,
+  .cafe-paper > header nav,
+  .cafe-paper > header nav a,
+  .cafe-paper > header nav button {
+    color: #f7ead3 !important;
+  }
+
+  .cafe-paper > header nav a,
+  .cafe-paper > header nav button {
+    border-color: rgba(247, 234, 211, 0.28) !important;
+    background: rgba(255, 243, 218, 0.08) !important;
+  }
+
+  .cafe-paper > section:first-of-type {
+    min-height: 255px;
+    background: #f8edda !important;
+    border-bottom: 0 !important;
+    display: flex;
+    align-items: center;
+  }
+
+  .cafe-paper > section:first-of-type h1 {
+    max-width: 760px !important;
+    font-size: clamp(3.25rem, 8vw, 7.5rem) !important;
+    letter-spacing: -0.07em !important;
+    color: #3f271d !important;
+  }
+
+  .cafe-paper > section:first-of-type h1 em {
+    color: #b85838 !important;
+  }
+
+  .cafe-paper > section:nth-of-type(2) aside {
+    border: 2px solid #c9a982 !important;
+    border-radius: 6px !important;
+    background: #f8edda !important;
+    box-shadow: 8px 8px 0 rgba(96, 52, 31, 0.12) !important;
+  }
+
+  .cafe-paper > section:nth-of-type(2) aside > div button,
+  .cafe-paper > section:nth-of-type(2) aside label {
+    border-color: #d2b893 !important;
+    background: #fff8e9 !important;
+    border-radius: 4px !important;
+  }
+
+  .cafe-paper > section:nth-of-type(2) aside > div > button:last-child {
+    color: #6b3f2a !important;
+  }
+
+  .cafe-paper > section:nth-of-type(2) aside a,
+  .cafe-paper > section:nth-of-type(2) aside > button:last-child {
+    border-radius: 4px !important;
+    background: #5a3023 !important;
+    color: #fff3da !important;
+  }
 }
