@@ -84,7 +84,7 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
   }, [selected])
 
   return (
-    <div className="relative min-h-[600px] overflow-hidden rounded-2xl border border-[#deded7] bg-[#e6e5de] shadow-sm">
+    <div className="relative min-h-[520px] overflow-hidden rounded-2xl border border-[#deded7] bg-[#e6e5de] shadow-sm lg:min-h-[calc(100vh-9rem)]">
       <div ref={mapRef} className="absolute inset-0" aria-label="Interactive map of specialty coffee cafes in India" />
       {mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-[#e6e5de] p-6 text-center">
@@ -95,7 +95,7 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
           </div>
         </div>
       )}
-      <div className="pointer-events-none absolute bottom-5 left-5 max-w-xs rounded-xl border border-white/70 bg-[#fbfaf7]/95 p-4 shadow-xl backdrop-blur">
+      <div className="pointer-events-none absolute bottom-4 left-4 max-w-xs rounded-2xl border border-white/70 bg-[#fbfaf7]/95 p-4 shadow-xl backdrop-blur sm:bottom-5 sm:left-5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a9189]">Selected place</p>
         <h3 className="mt-1 font-serif text-xl">{selected.name}</h3>
         <p className="mt-1 text-xs text-[#687068]">{selected.area}</p>
