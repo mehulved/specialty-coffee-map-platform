@@ -1,0 +1,107 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { Coffee, MapPin } from 'lucide-react'
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
+
+type Cafe = {
+  name: string
+  area: string
+  rating: number
+  roast: string
+  lat: number
+  lng: number
+  note: string
+}
+
+type GoogleMapPanelProps = {
+  cafes: Cafe[]
+  selected: Cafe
+  onSelect: (cafe: Cafe) => void
+}
+
+export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProps) {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstance = useRef<google.maps.Map | null>(null)
+  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([])
+  const [mapError, setMapError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadMap() {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      if (!apiKey || !mapRef.current) {
+        setMapError(true)
+        return
+      }
+
+      try {
+        setOptions({ apiKey, version: 'weekly' })
+        const { Map } = await importLibrary('maps') as google.maps.MapsLibrary
+        const { AdvancedMarkerElement } = await importLibrary('marker') as google.maps.MarkerLibrary
+        if (cancelled || !mapRef.current) return
+
+        const map = new Map(mapRef.current, {
+          center: { lat: 22.5, lng: 79.5 },
+          zoom: 5,
+          mapId: 'kaapi-atlas',
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          gestureHandling: 'greedy',
+        })
+        mapInstance.current = map
+
+        markers.current = cafes.map((cafe) => {
+          const marker = new AdvancedMarkerElement({
+            map,
+            position: { lat: cafe.lat, lng: cafe.lng },
+            title: cafe.name,
+          })
+          marker.addListener('click', () => onSelect(cafe))
+          return marker
+        })
+      } catch (error) {
+        console.error('[v0] Google Maps failed to load:', error)
+        setMapError(true)
+      }
+    }
+
+    loadMap()
+    return () => {
+      cancelled = true
+      markers.current.forEach((marker) => { marker.map = null })
+      markers.current = []
+    }
+  }, [cafes, onSelect])
+
+  useEffect(() => {
+    if (!mapInstance.current) return
+    mapInstance.current.panTo({ lat: selected.lat, lng: selected.lng })
+    mapInstance.current.setZoom(13)
+  }, [selected])
+
+  return (
+    <div className="relative min-h-[600px] overflow-hidden rounded-2xl border border-[#deded7] bg-[#e6e5de] shadow-sm">
+      <div ref={mapRef} className="absolute inset-0" aria-label="Interactive map of specialty coffee cafes in India" />
+      {mapError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#e6e5de] p-6 text-center">
+          <div className="max-w-sm rounded-2xl border border-[#deded7] bg-[#fbfaf7] p-6 shadow-xl">
+            <MapPin className="mx-auto mb-3 text-[#b46d45]" />
+            <h3 className="font-serif text-xl">Map unavailable</h3>
+            <p className="mt-2 text-sm leading-6 text-[#687068]">Google Maps could not load. Check that this key has Maps JavaScript API enabled and allows this preview origin.</p>
+          </div>
+        </div>
+      )}
+      <div className="pointer-events-none absolute bottom-5 left-5 max-w-xs rounded-xl border border-white/70 bg-[#fbfaf7]/95 p-4 shadow-xl backdrop-blur">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a9189]">Selected place</p>
+        <h3 className="mt-1 font-serif text-xl">{selected.name}</h3>
+        <p className="mt-1 text-xs text-[#687068]">{selected.area}</p>
+        <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#9a603e]"><Coffee className="size-3.5" /> {selected.rating} community rating <span className="text-[#b9beb7]">·</span> {selected.roast}</div>
+      </div>
+    </div>
+  )
+}
+
+export default GoogleMapPanel
