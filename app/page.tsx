@@ -20,9 +20,9 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-[#f7f6f2] text-[#20221f]">
       <header className="flex h-20 items-center justify-between border-b border-[#deded7] bg-[#fbfaf7] px-6 lg:px-10">
-        <Link href="/" className="flex items-center gap-3" aria-label="Sūtra home">
+        <Link href="/" className="flex items-center gap-3" aria-label="kaapi home">
           <span className="flex size-10 items-center justify-center rounded-full bg-[#1f3b2c] text-[#f5e9d0]"><Coffee data-icon="inline-start" /></span>
-          <span><span className="block font-serif text-xl font-semibold tracking-tight">Sūtra</span><span className="block text-[10px] font-medium uppercase tracking-[0.24em] text-[#778077]">India coffee atlas</span></span>
+          <span><span className="block font-serif text-xl font-semibold tracking-tight">kaapi</span><span className="block text-[10px] font-medium uppercase tracking-[0.24em] text-[#778077]">India coffee atlas</span></span>
         </Link>
         <nav className="flex items-center gap-5 text-sm text-[#687068]"><span className="hidden sm:inline">Explore</span><Link href="/sign-in" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><UserRound data-icon="inline-start" /> Sign in</Link></nav>
       </header>
