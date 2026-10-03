@@ -2,11 +2,11 @@
 
 import useSWR from 'swr'
 import { useMemo, useState } from 'react'
-import { Coffee, LogOut, MapPin, Search, Shield, SlidersHorizontal, Star, UserRound, Plus, X } from 'lucide-react'
+import { Coffee, Heart, LogOut, MapPin, Search, Shield, SlidersHorizontal, Star, UserRound, Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { GoogleMapPanel } from '@/components/google-map-panel'
 import { authClient } from '@/lib/auth-client'
-import { getCafeFeedback, saveCafeFeedback } from '@/app/actions/ratings'
+import { getCafeFeedback, saveCafeFeedback, toggleFavoriteLocation } from '@/app/actions/ratings'
 import { submitLocationFlag } from '@/app/actions/submissions'
 
 const fetcher = (url: string) => fetch(url).then((response) => response.json())
@@ -22,6 +22,7 @@ const cafes = [
 export default function Page() {
   const { data: session } = authClient.useSession()
   const { data: approvedLocations = [] } = useSWR('/api/locations', fetcher)
+  const { data: favoriteIds = [], mutate: mutateFavorites } = useSWR<string[]>(session?.user ? '/api/favorites' : null, fetcher)
   const allCafes = useMemo(() => {
     const managedByName = new Map(approvedLocations.map((location: typeof cafes[number]) => [location.name.toLowerCase(), location]))
     const curated = cafes.map((cafe) => managedByName.get(cafe.name.toLowerCase()) ? { ...cafe, ...managedByName.get(cafe.name.toLowerCase()) } : cafe)
@@ -41,6 +42,7 @@ export default function Page() {
   const [flagReason, setFlagReason] = useState<'temporarily_closed' | 'permanently_closed' | 'reopened'>('temporarily_closed')
   const [flagDetails, setFlagDetails] = useState('')
   const [flagSent, setFlagSent] = useState(false)
+  const [favoriteError, setFavoriteError] = useState('')
   const [feedbackRating, setFeedbackRating] = useState(0)
   const [feedbackNote, setFeedbackNote] = useState('')
   const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
@@ -69,6 +71,20 @@ export default function Page() {
       setShowFeedback(true)
     } catch {
       setShowFeedback(true)
+    }
+  }
+
+  async function toggleFavorite(cafe: (typeof allCafes)[number]) {
+    if (!session?.user) {
+      window.location.href = '/sign-in'
+      return
+    }
+    try {
+      setFavoriteError('')
+      await toggleFavoriteLocation(cafe.id ?? cafe.name)
+      await mutateFavorites()
+    } catch {
+      setFavoriteError('Sign in to save favourites.')
     }
   }
 
@@ -109,8 +125,8 @@ export default function Page() {
           <div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b46d45]">The shortlist</p><h2 className="mt-1 font-serif text-3xl leading-none">{filtered.length} places</h2></div><button className="rounded-full border border-[#deded7] p-2 text-[#687068] hover:bg-[#f0f1ec]" aria-label="Filter cafes"><SlidersHorizontal data-icon="inline-start" /></button></div>
           <label className="mt-4 flex items-center gap-2 rounded-full border border-[#deded7] bg-white px-4 py-3"><Search className="size-4 text-[#8a9189]" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by city, cafe, or tag" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9ba19a]" /></label>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1"><button onClick={() => setQuery('')} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${!query ? 'bg-[#1f3b2c] text-white' : 'border border-[#deded7] bg-white text-[#687068]'}`}>All places</button>{popularLists.map((list) => <button key={list.label} onClick={() => setQuery(list.search)} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${query.toLowerCase() === list.search.toLowerCase() ? 'border-[#e2542f] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#deded7] bg-white text-[#687068] hover:border-[#e6c7ae]'}`}>{list.label}</button>)}</div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">{filtered.map((cafe) => <button key={cafe.name} onClick={() => setSelected(cafe)} aria-current={selected.name === cafe.name ? 'true' : undefined} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-2 border-[#e2542f] bg-[#fff0e9] shadow-[0_0_0_3px_rgba(226,84,47,0.12)]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-center justify-between gap-3"><div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><h3 className="truncate text-sm font-semibold">{cafe.name}</h3>{cafe.tags.map((tag) => <span key={tag} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}</div><p className="mt-1 flex items-center gap-1 truncate text-[11px] text-[#7c847c]"><MapPin className="size-3" />{cafe.area}</p>{cafe.availabilityStatus && cafe.availabilityStatus !== 'open' && <span className={`mt-2 inline-block rounded-full px-2 py-1 text-[10px] font-semibold ${cafe.availabilityStatus === 'permanently_closed' ? 'bg-[#f7d8d3] text-[#9d3f34]' : 'bg-[#fff0c7] text-[#8a6211]'}`}>{cafe.availabilityStatus === 'permanently_closed' ? 'Permanently closed' : 'Temporarily closed'}</span>}</div><span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#9a603e]"><Star className="size-3 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}</span></div></button>)}</div>
-          <div className="mt-4 grid grid-cols-2 gap-2"><button onClick={openFeedback} className="flex items-center justify-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-3 py-2.5 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Rate</button><button onClick={() => { setFlagSent(false); setShowFlag(true) }} className="rounded-full border border-[#d7d9d2] bg-white px-3 py-2.5 text-sm font-semibold text-[#687068] hover:bg-[#f0f1ec]">Report status</button></div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">{filtered.map((cafe) => <div key={cafe.name} role="button" tabIndex={0} onClick={() => setSelected(cafe)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelected(cafe) }} aria-current={selected.name === cafe.name ? 'true' : undefined} className={`rounded-xl border p-3 text-left transition ${selected.name === cafe.name ? 'border-2 border-[#e2542f] bg-[#fff0e9] shadow-[0_0_0_3px_rgba(226,84,47,0.12)]' : 'border-transparent hover:border-[#deded7] hover:bg-white'}`}><div className="flex items-center justify-between gap-3"><div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><h3 className="truncate text-sm font-semibold">{cafe.name}</h3>{cafe.tags.map((tag) => <span key={tag} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${tag === 'Cafe' ? 'border-[#efb9a3] bg-[#fff0e9] text-[#b64d2d]' : 'border-[#b9c9e8] bg-[#edf3ff] text-[#4167a5]'}`}>{tag}</span>)}</div><p className="mt-1 flex items-center gap-1 truncate text-[11px] text-[#7c847c]"><MapPin className="size-3" />{cafe.area}</p>{cafe.availabilityStatus && cafe.availabilityStatus !== 'open' && <span className={`mt-2 inline-block rounded-full px-2 py-1 text-[10px] font-semibold ${cafe.availabilityStatus === 'permanently_closed' ? 'bg-[#f7d8d3] text-[#9d3f34]' : 'bg-[#fff0c7] text-[#8a6211]'}`}>{cafe.availabilityStatus === 'permanently_closed' ? 'Permanently closed' : 'Temporarily closed'}</span>}</div><div className="flex shrink-0 items-center gap-2"><span className="flex items-center gap-1 text-xs font-semibold text-[#9a603e]"><Star className="size-3 fill-current" />{savedFeedback[cafe.name]?.average?.toFixed(1) ?? cafe.rating}</span><button type="button" onClick={(event) => { event.stopPropagation(); void toggleFavorite(cafe) }} aria-label={favoriteIds.includes(cafe.id ?? cafe.name) ? `Remove ${cafe.name} from favourites` : `Save ${cafe.name} to favourites`} className="rounded-full p-1.5 text-[#b46d45] hover:bg-white"><Heart className={`size-4 ${favoriteIds.includes(cafe.id ?? cafe.name) ? 'fill-current' : ''}`} /></button></div></div></div>)}</div>
+          {favoriteError && <p role="status" className="mt-3 text-xs text-[#b64d2d]">{favoriteError}</p>}<div className="mt-4 grid grid-cols-2 gap-2"><button onClick={openFeedback} className="flex items-center justify-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-3 py-2.5 text-sm font-semibold text-[#314337] hover:bg-[#f0f1ec]"><Star className="size-4" /> Rate</button><button onClick={() => { setFlagSent(false); setShowFlag(true) }} className="rounded-full border border-[#d7d9d2] bg-white px-3 py-2.5 text-sm font-semibold text-[#687068] hover:bg-[#f0f1ec]">Report status</button></div>
         </aside>
         <GoogleMapPanel cafes={allCafes} selected={selected} viewport={selectedViewport} onSelect={setSelected} />
       </section>

@@ -42,4 +42,16 @@ export const locationFlags = pgTable('location_flag', {
 
 export type CafeSubmission = typeof cafeSubmissions.$inferSelect
 export type LocationFlag = typeof locationFlags.$inferSelect
+export const cafeFavorites = pgTable(
+  'cafe_favorite',
+  {
+    id: text('id').primaryKey(),
+    locationId: text('locationId').notNull(),
+    userId: text('userId').notNull(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({ userLocationUnique: unique('cafe_favorite_user_location_unique').on(table.userId, table.locationId) }),
+)
+
+export type CafeFavorite = typeof cafeFavorites.$inferSelect
 export const cafeRatingsTable = cafeRatings

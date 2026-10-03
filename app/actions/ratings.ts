@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { cafeRatings } from '@/lib/db/schema'
+import { cafeFavorites, cafeRatings } from '@/lib/db/schema'
 import { and, avg, count, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
@@ -14,6 +14,25 @@ async function getUserId() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) throw new Error('Unauthorized')
   return session.user.id
+}
+
+export async function getFavoriteLocationIds() {
+  const userId = await getUserId()
+  const rows = await db.select({ locationId: cafeFavorites.locationId }).from(cafeFavorites).where(eq(cafeFavorites.userId, userId))
+  return rows.map((row) => row.locationId)
+}
+
+export async function toggleFavoriteLocation(locationId: string) {
+  const userId = await getUserId()
+  const normalizedId = locationId.trim()
+  if (!normalizedId || normalizedId.length > 200) throw new Error('Invalid location')
+  const existing = await db.select({ id: cafeFavorites.id }).from(cafeFavorites).where(and(eq(cafeFavorites.locationId, normalizedId), eq(cafeFavorites.userId, userId))).limit(1)
+  if (existing[0]) {
+    await db.delete(cafeFavorites).where(eq(cafeFavorites.id, existing[0].id))
+    return { favorited: false }
+  }
+  await db.insert(cafeFavorites).values({ id: crypto.randomUUID(), locationId: normalizedId, userId })
+  return { favorited: true }
 }
 
 export async function getCafeFeedback(cafeName: string) {
