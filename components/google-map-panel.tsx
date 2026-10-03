@@ -63,6 +63,8 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
           marker.addListener('click', () => onSelect(cafe))
           return marker
         })
+        map.panTo({ lat: selected.lat, lng: selected.lng })
+        map.setZoom(16)
       } catch (error) {
         console.error('[v0] Google Maps failed to load:', error)
         setMapError(true)
@@ -80,7 +82,7 @@ export function GoogleMapPanel({ cafes, selected, onSelect }: GoogleMapPanelProp
   useEffect(() => {
     if (!mapInstance.current) return
     mapInstance.current.panTo({ lat: selected.lat, lng: selected.lng })
-    mapInstance.current.setZoom(16)
+    window.setTimeout(() => mapInstance.current?.setZoom(16), 0)
   }, [selected])
 
   return (
