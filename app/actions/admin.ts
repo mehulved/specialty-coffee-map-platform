@@ -40,8 +40,6 @@ export async function requireAdmin() {
   return session
 }
 
-export type AdminPromotionState = { error?: string; success?: boolean }
-
 export async function promoteFirstAdminWithRedirect(formData: FormData) {
   const result = await promoteFirstAdmin(formData)
   if (result.success) redirect('/admin')
