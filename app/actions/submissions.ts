@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { cafeSubmissions, locationFlags } from '@/lib/db/schema'
+import { cafeSubmissions, locationFlags, locationUpdates } from '@/lib/db/schema'
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -45,6 +45,34 @@ export async function removeApprovedSubmission(formData: FormData) {
   await db.update(cafeSubmissions).set({ status: 'rejected' }).where(and(eq(cafeSubmissions.id, id), eq(cafeSubmissions.status, 'approved')))
   revalidatePath('/admin')
   revalidatePath('/')
+}
+
+export async function submitLocationUpdate(input: { locationId: string; details: string }) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) redirect('/sign-in')
+  const details = input.details.trim().slice(0, 2000)
+  if (!input.locationId || !details) throw new Error('Add information before submitting')
+  await db.insert(locationUpdates).values({ id: crypto.randomUUID(), locationId: input.locationId, submittedBy: session.user.id, details })
+  revalidatePath('/admin')
+  return { ok: true }
+}
+
+export async function getPendingLocationUpdates() {
+  await requireAdmin()
+  return db.select({ update: locationUpdates, location: cafeSubmissions }).from(locationUpdates).innerJoin(cafeSubmissions, eq(locationUpdates.locationId, cafeSubmissions.id)).where(eq(locationUpdates.status, 'pending')).orderBy(desc(locationUpdates.createdAt))
+}
+
+export async function moderateLocationUpdate(formData: FormData) {
+  await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  const status = String(formData.get('status') ?? '')
+  if (!id || !['approved', 'rejected'].includes(status)) throw new Error('Invalid update moderation request')
+  await db.update(locationUpdates).set({ status }).where(eq(locationUpdates.id, id))
+  if (status === 'approved') {
+    const update = await db.select().from(locationUpdates).where(eq(locationUpdates.id, id)).limit(1)
+    if (update[0]) await db.update(cafeSubmissions).set({ details: update[0].details }).where(eq(cafeSubmissions.id, update[0].locationId))
+  }
+  revalidatePath('/admin'); revalidatePath('/')
 }
 
 export async function submitLocationFlag(input: { locationId: string; reason: 'temporarily_closed' | 'permanently_closed' | 'reopened'; details: string }) {
