@@ -24,8 +24,12 @@ export async function createCafeSubmission(input: { name: string; address: strin
   const details = input.details.trim().slice(0, 2000)
   const tags = input.tags.filter((tag) => tag === 'Cafe' || tag === 'Roastery')
   if (!name || !address || !Number.isFinite(input.latitude) || !Number.isFinite(input.longitude) || !tags.length) throw new Error('Invalid submission')
-  await db.insert(cafeSubmissions).values({ id: crypto.randomUUID(), name, address, latitude: input.latitude, longitude: input.longitude, tags, details, submittedBy: session.user.id })
-  return { ok: true }
+  const roleResult = await db.execute<{ role: string }>(sql`SELECT "role" FROM "user" WHERE "id" = ${session.user.id}`)
+  const isAdmin = roleResult.rows[0]?.role === 'admin'
+  await db.insert(cafeSubmissions).values({ id: crypto.randomUUID(), name, address, latitude: input.latitude, longitude: input.longitude, tags, details, submittedBy: session.user.id, status: isAdmin ? 'approved' : 'pending' })
+  revalidatePath('/admin')
+  revalidatePath('/')
+  return { ok: true, status: isAdmin ? 'approved' : 'pending' }
 }
 
 export async function getPendingSubmissions() {
