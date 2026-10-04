@@ -53,7 +53,12 @@ export default function Page() {
   const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase()
-    const matchesSearch = (cafe: (typeof allCafes)[number]) => !search || `${cafe.name} ${cafe.area} ${(cafe.aliases ?? []).join(' ')} ${cafe.tags.join(' ')}`.toLowerCase().includes(search)
+    const cityAliases: Record<string, string[]> = { bangalore: ['bangalore', 'bengaluru'], bengaluru: ['bangalore', 'bengaluru'], bombay: ['bombay', 'mumbai'], mumbai: ['bombay', 'mumbai'], delhi: ['delhi', 'dilli', 'ncr'], dilli: ['delhi', 'dilli', 'ncr'], ncr: ['delhi', 'dilli', 'ncr'] }
+    const matchesSearch = (cafe: (typeof allCafes)[number]) => {
+      if (!search) return true
+      const searchable = `${cafe.name} ${cafe.area} ${(cafe.aliases ?? []).join(' ')} ${cafe.tags.join(' ')}`.toLowerCase()
+      return (cityAliases[search] ?? [search]).some((term) => searchable.includes(term))
+    }
     return allCafes.filter((cafe) => matchesSearch(cafe) && (!favoritesOnly || favoriteIds.includes(cafe.id ?? cafe.name)))
   }, [allCafes, favoriteIds, favoritesOnly, query])
   const selectedViewport = useMemo(() => {
