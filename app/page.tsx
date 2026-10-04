@@ -112,11 +112,11 @@ export default function Page() {
   return (
     <main className="cafe-paper min-h-screen bg-[#f4efe7] text-[#171513]">
       <header className="flex min-h-20 items-center justify-between gap-3 overflow-hidden border-b border-[#171513] bg-[#171513] px-4 text-[#fffdf8] sm:px-6 lg:px-10">
-        <Link href="/" className="flex items-center gap-3" aria-label="kaapi home">
+        <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label="kaapi home">
           <span className="flex size-10 items-center justify-center rounded-full bg-[#e2542f] text-[#fffdf8]"><Coffee data-icon="inline-start" /></span>
           <span><span className="block font-serif text-xl font-semibold tracking-tight">kaapi</span><span className="block text-[10px] font-medium uppercase tracking-[0.24em] text-[#c7bfb5]">India coffee atlas</span></span>
         </Link>
-        <nav className="flex shrink-0 items-center gap-2 text-sm text-[#687068]">{session?.user ? <><Link href="/add-cafe" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><Plus data-icon="inline-start" /> Add location</Link><Link href="/admin" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><Shield data-icon="inline-start" /> Admin</Link><button onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => window.location.reload() } })} className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><LogOut data-icon="inline-start" /> Sign out</button></> : <Link href="/sign-in" className="flex items-center gap-2 rounded-full border border-[#d7d9d2] bg-white px-4 py-2 font-medium text-[#314337] hover:bg-[#f0f1ec]"><UserRound data-icon="inline-start" /> Sign in</Link>}</nav>
+        <nav className="flex min-w-0 max-w-[58vw] items-center justify-end gap-1.5 overflow-x-auto pb-0.5 text-sm text-[#687068] sm:max-w-none sm:gap-2">{session?.user ? <><Link href="/add-cafe" className="flex items-center gap-2 whitespace-nowrap rounded-full border border-[#d7d9d2] bg-white px-3 py-2 text-xs font-medium sm:px-4 sm:text-sm text-[#314337] hover:bg-[#f0f1ec]"><Plus data-icon="inline-start" /> Add location</Link><Link href="/admin" className="flex items-center gap-2 whitespace-nowrap rounded-full border border-[#d7d9d2] bg-white px-3 py-2 text-xs font-medium sm:px-4 sm:text-sm text-[#314337] hover:bg-[#f0f1ec]"><Shield data-icon="inline-start" /> Admin</Link><button onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => window.location.reload() } })} className="flex items-center gap-2 whitespace-nowrap rounded-full border border-[#d7d9d2] bg-white px-3 py-2 text-xs font-medium sm:px-4 sm:text-sm text-[#314337] hover:bg-[#f0f1ec]"><LogOut data-icon="inline-start" /> Sign out</button></> : <Link href="/sign-in" className="flex items-center gap-2 whitespace-nowrap rounded-full border border-[#d7d9d2] bg-white px-3 py-2 text-xs font-medium sm:px-4 sm:text-sm text-[#314337] hover:bg-[#f0f1ec]"><UserRound data-icon="inline-start" /> Sign in</Link>}</nav>
       </header>
       <section className="border-b border-[#171513] bg-[#171513] px-4 py-10 text-[#fffdf8] sm:px-6 sm:py-12 lg:px-10">
         <div className="mx-auto max-w-[1440px]"><p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#f28c58]">A living guide to better coffee</p><h1 className="max-w-3xl font-serif text-4xl leading-[1.02] tracking-tight sm:text-7xl">Find your next <em className="text-[#f28c58]">good cup.</em></h1><p className="mt-4 max-w-xl text-base leading-7 text-[#c7bfb5]">A curated map of specialty cafes, roasters, and the people making Indian coffee worth travelling for.</p></div>
@@ -142,7 +142,7 @@ export default function Page() {
           </section>
         </div>
       )}
-      <footer className="mx-auto flex max-w-[1440px] items-center justify-between px-6 pb-8 pt-2 text-xs text-[#8a9189]"><span>Curated with care for coffee people.</span><span>Suggest a place · About</span></footer>
+      <footer className="mx-auto flex max-w-[1440px] flex-col items-start gap-2 px-4 pb-6 pt-2 text-xs text-[#8a9189] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-8"><span>Curated with care for coffee people.</span><span>Suggest a place · About</span></footer>
     </main>
   )
 }
