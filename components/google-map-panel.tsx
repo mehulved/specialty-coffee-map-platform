@@ -90,7 +90,7 @@ export function GoogleMapPanel({ cafes, selected, viewport, onSelect }: GoogleMa
   }, [selected, viewport])
 
   return (
-    <div className="relative min-h-[350px] overflow-hidden rounded-2xl border border-[#deded7] bg-[#e6e5de] shadow-sm sm:min-h-[420px] lg:min-h-[calc(100vh-9rem)]">
+    <div className="relative min-h-[280px] overflow-hidden rounded-2xl border border-[#deded7] bg-[#e6e5de] shadow-sm sm:min-h-[420px] lg:min-h-[calc(100vh-9rem)]">
       <div ref={mapRef} className="absolute inset-0" aria-label="Interactive map of specialty coffee cafes in India" />
       {mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-[#e6e5de] p-6 text-center">
