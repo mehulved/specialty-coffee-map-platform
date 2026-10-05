@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   title: 'kaapi — India Coffee Atlas',
   description: 'A curated map of specialty coffee cafes across India.',
   generator: 'v0.app',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-light-32x32.png', type: 'image/png', sizes: '32x32' },
+    ],
+    apple: '/apple-icon.png',
+  },
 }
 
 export const viewport: Viewport = { colorScheme: 'light', themeColor: '#f7f6f2' }
