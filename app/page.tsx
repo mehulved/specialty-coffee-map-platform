@@ -53,7 +53,15 @@ export default function Page() {
   const [savedFeedback, setSavedFeedback] = useState<Record<string, { rating: number; note: string; average: number; count: number }>>({})
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase()
-    const cityAliases: Record<string, string[]> = { bangalore: ['bangalore', 'bengaluru'], bengaluru: ['bangalore', 'bengaluru'], bombay: ['bombay', 'mumbai'], mumbai: ['bombay', 'mumbai'], delhi: ['delhi', 'dilli', 'ncr'], dilli: ['delhi', 'dilli', 'ncr'], ncr: ['delhi', 'dilli', 'ncr'] }
+    const cityAliases: Record<string, string[]> = {
+      bangalore: ['bangalore', 'bengaluru', 'indiranagar', 'koramangala', 'hsr'],
+      bengaluru: ['bangalore', 'bengaluru', 'indiranagar', 'koramangala', 'hsr'],
+      bombay: ['bombay', 'mumbai', 'thane', 'navi mumbai', 'bandra'],
+      mumbai: ['bombay', 'mumbai', 'thane', 'navi mumbai', 'bandra'],
+      delhi: ['delhi', 'dilli', 'ncr', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad'],
+      dilli: ['delhi', 'dilli', 'ncr', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad'],
+      ncr: ['delhi', 'dilli', 'ncr', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad'],
+    }
     const matchesSearch = (cafe: (typeof allCafes)[number]) => {
       if (!search) return true
       const searchable = `${cafe.name} ${cafe.area} ${(cafe.aliases ?? []).join(' ')} ${cafe.tags.join(' ')}`.toLowerCase()
