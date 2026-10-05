@@ -56,9 +56,17 @@ export async function submitLocationUpdate(input: { locationId: string; details:
   if (!session?.user) redirect('/sign-in')
   const details = input.details.trim().slice(0, 2000)
   if (!input.locationId || !details) throw new Error('Add information before submitting')
+  const roleResult = await db.execute<{ role: string }>(sql`SELECT "role" FROM "user" WHERE "id" = ${session.user.id}`)
+  const isAdmin = roleResult.rows[0]?.role === 'admin'
+  if (isAdmin) {
+    await db.update(cafeSubmissions).set({ details }).where(eq(cafeSubmissions.id, input.locationId))
+    revalidatePath('/admin')
+    revalidatePath('/')
+    return { ok: true, status: 'approved' as const }
+  }
   await db.insert(locationUpdates).values({ id: crypto.randomUUID(), locationId: input.locationId, submittedBy: session.user.id, details })
   revalidatePath('/admin')
-  return { ok: true }
+  return { ok: true, status: 'pending' as const }
 }
 
 export async function getPendingLocationUpdates() {
