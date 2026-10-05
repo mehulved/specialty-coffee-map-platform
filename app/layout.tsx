@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'kaapi — India Coffee Atlas',
+  title: 'caffography — India Coffee Atlas',
   description: 'A curated map of specialty coffee cafes across India.',
   generator: 'v0.app',
   icons: {
