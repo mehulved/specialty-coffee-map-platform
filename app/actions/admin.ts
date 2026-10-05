@@ -14,7 +14,7 @@ export async function promoteFirstAdmin(formData: FormData) {
 
   const email = String(formData.get('email') ?? FIRST_ADMIN_EMAIL).trim().toLowerCase()
   if (email !== FIRST_ADMIN_EMAIL || session.user.email.toLowerCase() !== FIRST_ADMIN_EMAIL) {
-    return { error: `Only ${FIRST_ADMIN_EMAIL} can become the first kaapi admin.` }
+    return { error: `Only ${FIRST_ADMIN_EMAIL} can become the first caffography admin.` }
   }
 
   const result = await db.execute(sql`SELECT COUNT(*)::int AS count FROM "user" WHERE "role" = 'admin'`)
